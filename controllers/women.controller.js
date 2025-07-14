@@ -16,7 +16,7 @@ exports.womendatapost= async (req, res) => {
     });
 
     await newWoman.save();
-    res.status(201).json({ message: "Woman data saved successfully" });
+    res.status(200).json({status:200, message: "Woman data saved successfully" });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Failed to save woman data" });
@@ -96,6 +96,7 @@ exports.getWomenWithNearestPolice = async (req, res) => {
       distances.sort((a, b) => parseFloat(a.distance) - parseFloat(b.distance));
 
       return {
+        status:200,
         woman: {
           name: woman.name,
           coordinates: woman.location.coordinates,

@@ -33,7 +33,10 @@ exports.Police_Register = async (req, res) => {
 
         await newPolice.save();
 
-        res.status(201).json({ message: "Police registered successfully" });
+        res.status(200).json({ 
+            status:200,
+            message: "Police registered successfully" 
+        });
     } catch (err) {
         console.error(err);
         res.status(500).json({ error: "Registration failed" });
@@ -55,6 +58,7 @@ exports.Police_Login = async (req, res) => {
         }
 
         res.json({
+              status:200,
             message: "Login successful",
             police: {
                 id: police._id,
@@ -87,7 +91,7 @@ exports.Update_Location= async (req, res) => {
       return res.status(404).json({ error: "Police not found" });
     }
 
-    res.json({ message: "Location updated", data: updated });
+    res.json({   status:200,message: "Location updated", data: updated });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Location update failed" });
