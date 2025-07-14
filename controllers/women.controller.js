@@ -79,12 +79,12 @@ exports.getWomenWithNearestPolice = async (req, res) => {
     const policeStations = await Police.find({});
 
     const results = women.map(woman => {
-      const [lon1, lat1] = woman.location.coordinates;
+      const [longitude, latitude] = woman.location.coordinates;
 
       const distances = policeStations.map(police => {
-        const { latitude: lat2, longitude: lon2 } = police.location;
+        const { latitude: policeLat, longitude: policeLon } = police.location;
 
-        const distance = calculateDistance(lat1, lon1, lat2, lon2);
+        const distance = calculateDistance(latitude, longitude, policeLat, policeLon);
 
         return {
           policeId: police._id,
@@ -96,10 +96,11 @@ exports.getWomenWithNearestPolice = async (req, res) => {
       distances.sort((a, b) => parseFloat(a.distance) - parseFloat(b.distance));
 
       return {
-        status:200,
+        status: 200,
         woman: {
           name: woman.name,
-          coordinates: woman.location.coordinates,
+          latitude,
+          longitude,
           timestamp: woman.timestamp || null
         },
         nearestPolice: distances[0]
@@ -112,4 +113,3 @@ exports.getWomenWithNearestPolice = async (req, res) => {
     res.status(500).json({ error: "Failed to calculate distances" });
   }
 };
-
