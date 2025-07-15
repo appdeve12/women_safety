@@ -95,13 +95,27 @@ exports.getWomenWithNearestPolice = async (req, res) => {
 
       distances.sort((a, b) => parseFloat(a.distance) - parseFloat(b.distance));
 
+  
+      let formattedDate = null;
+      let formattedTime = null;
+      if (woman.timestamp) {
+        const dateObj = new Date(woman.timestamp);
+        formattedDate = dateObj.toLocaleDateString('en-GB'); // Format: DD/MM/YYYY
+        formattedTime = dateObj.toLocaleTimeString('en-US', {
+          hour: '2-digit',
+          minute: '2-digit',
+          hour12: true
+        }); // Format: 10:00 AM
+      }
+
       return {
         status: 200,
         woman: {
           name: woman.name,
           latitude,
           longitude,
-          timestamp: woman.timestamp || null
+          date: formattedDate,
+          time: formattedTime
         },
         nearestPolice: distances[0]
       };
