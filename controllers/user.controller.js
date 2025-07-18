@@ -1,6 +1,7 @@
 // Register Police
 const bcrypt = require("bcryptjs");
 const Police = require("../models/user.model");
+const jwt=require("jsonwebtoken")
 
 exports.Police_Register = async (req, res) => {
     try {
@@ -44,41 +45,48 @@ exports.Police_Register = async (req, res) => {
 }
 // Login Police
 exports.Police_Login = async (req, res) => {
-    try {
-        const { phoneNumber, password } = req.body;
-        const police = await Police.findOne({ phoneNumber });
-
-        if (!police) {
-            return res.status(401).json({ error: "Police not found" });
-        }
-
-        const isMatch = await bcrypt.compare(password, police.password);
-        if (!isMatch) {
-            return res.status(401).json({ error: "Invalid password" });
-        }
-
-        res.json({
-              status:200,
-            message: "Login successful",
-            police: {
-                id: police._id,
-                name: police.name,
-                stationName: police.stationName,
-                location: police.location
-            }
-        });
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({ error: "Login failed" });
-    }
-}
-// Auto Update Police Location
-exports.Update_Location= async (req, res) => {
   try {
-    const { policeId, latitude, longitude } = req.body;
+    const { phoneNumber, password } = req.body;
+    const police = await Police.findOne({ phoneNumber });
 
-    if (!policeId || !latitude || !longitude) {
-      return res.status(400).json({ error: "Missing data" });
+    if (!police) {
+      return res.status(401).json({ error: "Police not found" });
+    }
+
+    const isMatch = await bcrypt.compare(password, police.password);
+    if (!isMatch) {
+      return res.status(401).json({ error: "Invalid password" });
+    }
+
+    const token = jwt.sign(
+      { id: police._id, stationName: police.stationName },
+      process.env.JWT_SECRET,
+      { expiresIn: "7d" }
+    );
+
+    res.json({
+      status: 200,
+      message: "Login successful",
+      token,
+      police: {
+        id: police._id,
+        stationName: police.stationName,
+        location: police.location
+      }
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Login failed" });
+  }
+};
+// Auto Update Police Location
+exports.Update_Location = async (req, res) => {
+  try {
+    const policeId = req.user.id; // Comes from decoded JWT
+    const { latitude, longitude } = req.body;
+
+    if (!latitude || !longitude) {
+      return res.status(400).json({ error: "Missing coordinates" });
     }
 
     const updated = await Police.findByIdAndUpdate(
@@ -91,9 +99,9 @@ exports.Update_Location= async (req, res) => {
       return res.status(404).json({ error: "Police not found" });
     }
 
-    res.json({   status:200,message: "Location updated", data: updated });
+    res.json({ status: 200, message: "Location updated", data: updated });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Location update failed" });
   }
-}
+};

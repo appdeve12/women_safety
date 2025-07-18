@@ -1,0 +1,226 @@
+{
+	"info": {
+		"_postman_id": "97e9f0d5-dc1b-41b8-8cc3-4e5fd4afb5ee",
+		"name": "Women_Safety",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "34662495"
+	},
+	"item": [
+		{
+			"name": "register",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n\r\n  \"state\": \"Uttar Pradesh\",\r\n  \"district\": \"Shamli\",\r\n  \"stationName\": \"Kairana khotvali\",\r\n  \"phoneNumber\": \"6396805859\",\r\n  \"password\": \"mypassword123\"\r\n \r\n}\r\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:5000/user/register",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "5000",
+					"path": [
+						"user",
+						"register"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "login",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY4NzllODdmMWI1ZTI1M2MwNmU1NjBjOSIsInN0YXRpb25OYW1lIjoiS2FpcmFuYSBraG90dmFsaSIsImlhdCI6MTc1MjgxOTkwNCwiZXhwIjoxNzUzNDI0NzA0fQ.dtlCnSX448xzK3Lx-QROVdv5sRzGBYZvsrUurBxag5k",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"phoneNumber\": \"6396805859\",\r\n  \"password\": \"mypassword123\"\r\n}\r\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:5000/user/login",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "5000",
+					"path": [
+						"user",
+						"login"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "getwomennear",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY4NzllODdmMWI1ZTI1M2MwNmU1NjBjOSIsInN0YXRpb25OYW1lIjoiS2FpcmFuYSBraG90dmFsaSIsImlhdCI6MTc1MjgyMDEwOSwiZXhwIjoxNzUzNDI0OTA5fQ.kD4v1fo_xVKIHPcNNnuoEIOHHDZN2Vv8Q_29QOmCBEg",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:5000/women/getwomennear/6879e87f1b5e253c06e560c9",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "5000",
+					"path": [
+						"women",
+						"getwomennear",
+						"6879e87f1b5e253c06e560c9"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "women_post",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY4NzllODdmMWI1ZTI1M2MwNmU1NjBjOSIsInN0YXRpb25OYW1lIjoiS2FpcmFuYSBraG90dmFsaSIsImlhdCI6MTc1MjgyMDEwOSwiZXhwIjoxNzUzNDI0OTA5fQ.kD4v1fo_xVKIHPcNNnuoEIOHHDZN2Vv8Q_29QOmCBEg",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"name\": \"riya\",\r\n  \"latitude\": 28.578248354615507,\r\n  \"longitude\": 77.31776180036893\r\n}\r\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:5000/women/womendata",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "5000",
+					"path": [
+						"women",
+						"womendata"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "locationupdate",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY4NzllODdmMWI1ZTI1M2MwNmU1NjBjOSIsInN0YXRpb25OYW1lIjoiS2FpcmFuYSBraG90dmFsaSIsImlhdCI6MTc1MjgxOTkwNCwiZXhwIjoxNzUzNDI0NzA0fQ.dtlCnSX448xzK3Lx-QROVdv5sRzGBYZvsrUurBxag5k",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"latitude\":28.568162730245398, \r\n    \"longitude\":77.32463453293045\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:5000/user/update-location",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "5000",
+					"path": [
+						"user",
+						"update-location"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "locationupdate Copy",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY4NzllODdmMWI1ZTI1M2MwNmU1NjBjOSIsInN0YXRpb25OYW1lIjoiS2FpcmFuYSBraG90dmFsaSIsImlhdCI6MTc1MjgxOTkwNCwiZXhwIjoxNzUzNDI0NzA0fQ.dtlCnSX448xzK3Lx-QROVdv5sRzGBYZvsrUurBxag5k",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"latitude\":28.568162730245398, \r\n    \"longitude\":77.32463453293045\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:5000/user/update-location",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "5000",
+					"path": [
+						"user",
+						"update-location"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
