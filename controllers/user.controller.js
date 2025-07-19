@@ -1,47 +1,47 @@
 // Register Police
 const bcrypt = require("bcryptjs");
 const Police = require("../models/user.model");
-const jwt=require("jsonwebtoken")
+const jwt = require("jsonwebtoken")
 
 exports.Police_Register = async (req, res) => {
-    try {
-        const {
+  try {
+    const {
 
-            state,
-            district,
-            stationName,
-            phoneNumber,
-            password,
-            location // optional
-        } = req.body;
+      state,
+      district,
+      stationName,
+      phoneNumber,
+      password,
+      location // optional
+    } = req.body;
 
-        const existing = await Police.findOne({ phoneNumber });
-        if (existing) {
-            return res.status(400).json({ error: "Phone number already registered" });
-        }
-
-        const hashedPassword = await bcrypt.hash(password, 10);
-
-        const newPolice = new Police({
-
-            state,
-            district,
-            stationName,
-            phoneNumber,
-            password: hashedPassword,
-            location
-        });
-
-        await newPolice.save();
-
-        res.status(200).json({ 
-            status:200,
-            message: "Police registered successfully" 
-        });
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({ error: "Registration failed" });
+    const existing = await Police.findOne({ phoneNumber });
+    if (existing) {
+      return res.status(400).json({ error: "Phone number already registered" });
     }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    const newPolice = new Police({
+
+      state,
+      district,
+      stationName,
+      phoneNumber,
+      password: hashedPassword,
+      location
+    });
+
+    await newPolice.save();
+
+    res.status(200).json({
+      status: 200,
+      message: "Police registered successfully"
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Registration failed" });
+  }
 }
 // Login Police
 exports.Police_Login = async (req, res) => {
