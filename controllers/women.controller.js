@@ -1,7 +1,7 @@
 const Woman = require("../models/women.model");
 const Police = require("../models/user.model");
+const admin = require("../fcmService"); // ✅ Import firebase admin
 
-// Utility to calculate distance between 2 coordinates
 function calculateDistance(lat1, lon1, lat2, lon2) {
   const toRadians = degree => degree * (Math.PI / 180);
   const R = 6371;
@@ -18,7 +18,6 @@ function calculateDistance(lat1, lon1, lat2, lon2) {
   return R * c;
 }
 
-// ✅ POST /women/womendata - Add woman and notify nearby police
 exports.womendatapost = async (req, res) => {
   try {
     const { name, latitude, longitude } = req.body;
@@ -31,7 +30,7 @@ exports.womendatapost = async (req, res) => {
       name,
       location: {
         type: "Point",
-        coordinates: [parseFloat(longitude), parseFloat(latitude)]
+        coordinates: [parseFloat(longitude), parseFloat(latitude)],
       },
       timestamp: new Date(),
       addedBy: req.user?.id || null
@@ -39,7 +38,6 @@ exports.womendatapost = async (req, res) => {
 
     await newWoman.save();
 
-    // ✅ Notify police if within 10km
     const allPolice = await Police.find({});
 
     for (const police of allPolice) {
@@ -48,7 +46,7 @@ exports.womendatapost = async (req, res) => {
 
       const distance = calculateDistance(latitude, longitude, pLat, pLon);
 
-      if (distance <= 10) {
+      if (distance <= 10 && police.fcmToken) {
         const now = new Date();
         const formattedDate = now.toLocaleDateString('en-GB');
         const formattedTime = now.toLocaleTimeString('en-US', {
@@ -57,27 +55,30 @@ exports.womendatapost = async (req, res) => {
           hour12: true
         });
 
-        const notification = {
-          woman: {
-            name,
-            latitude,
-            longitude,
-            date: formattedDate,
-            time: formattedTime,
-            distance: distance.toFixed(2) + " km"
+        const payload = {
+          notification: {
+            title: `🚨 Emergency Alert: ${name}`,
+            body: `At ${formattedTime} on ${formattedDate}, distance: ${distance.toFixed(2)} km`,
           },
-          nearestPolice: {
-            stationName: police.stationName,
-            latitude: pLat,
-            longitude: pLon
-          }
+          data: {
+            womanName: name,
+            latitude: latitude.toString(),
+            longitude: longitude.toString(),
+            stationId: police._id.toString(),
+          },
+          token: police.fcmToken
         };
 
-        io.to(police._id.toString()).emit("woman-nearby", notification);
+        try {
+          await admin.messaging().send(payload);
+          console.log(`✅ FCM sent to ${police.stationName}`);
+        } catch (error) {
+          console.error("❌ Error sending FCM:", error.message);
+        }
       }
     }
 
-    res.status(201).json({ status: 201, message: "Woman added and nearby police notified." });
+    res.status(201).json({ status: 201, message: "Woman added and nearby police notified via FCM." });
 
   } catch (err) {
     console.error("Error saving woman:", err);
@@ -125,15 +126,7 @@ exports.getWomenNearByPoliceStation = async (req, res) => {
 
         nearbyWomen.push(womanData);
 
-        // 🔔 Emit real-time notification to police socket room (optional here)
-        io.to(policeId).emit("woman-nearby", {
-          woman: womanData,
-          nearestPolice: {
-            stationName: police.stationName,
-            latitude: policeLat,
-            longitude: policeLon
-          }
-        });
+
       }
     }
 

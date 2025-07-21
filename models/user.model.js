@@ -8,6 +8,10 @@ const PoliceSchema = new mongoose.Schema({
     location: {
         latitude: Number,
         longitude: Number
-    }
+    },
+     fcmToken: {
+    type: String, // ✅ required for FCM
+    default: null,
+  },
 })
 module.exports = mongoose.model("Police", PoliceSchema);
