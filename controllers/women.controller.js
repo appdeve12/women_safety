@@ -3,9 +3,13 @@ const Police = require("../models/user.model");
 const admin = require("../fcmService"); // ✅ Import firebase admin
 const NodeGeocoder = require('node-geocoder');
 
-const geocoder = NodeGeocoder({
-  provider: 'openstreetmap'  // No key required
-});
+const options = {
+  provider: 'openstreetmap',
+  httpAdapter: 'https', // <-- use HTTPS
+  formatter: null
+};
+
+const geocoder = NodeGeocoder(options);
 async function getAddress(lat, lon) {
   try {
     const res = await geocoder.reverse({ lat, lon });
