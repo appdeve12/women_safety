@@ -5,8 +5,8 @@ const NodeGeocoder = require('node-geocoder');
 
 const options = {
   provider: 'openstreetmap',
-  httpAdapter: 'https', // <-- use HTTPS
-  formatter: null
+  // httpAdapter: 'https', // <-- use HTTPS
+  // formatter: null
 };
 
 const geocoder = NodeGeocoder(options);
