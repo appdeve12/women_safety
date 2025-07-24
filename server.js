@@ -30,3 +30,33 @@ app.listen(process.env.PORT, () =>
 
 
 // fRBy8lleTWOCEetYyb7elg:APA91bEcR9VidQSf739WJXdnr5S_TqSso9wechS8VRS-R1cQLQgDyTxYFue6hRNg5pDeIEgQSHByHFPDpyJWAvhoC8EaXWfJbSBP7n5ClL3WjsCX0FkKXSU
+
+const admin = require("firebase-admin");
+const serviceAccount = require("./woman-safety-c2b87-firebase-adminsdk-fbsvc-e327eac024.json");
+
+// Initialize Firebase Admin SDK
+admin.initializeApp({
+  credential: admin.credential.cert(serviceAccount),
+});
+
+// Notification sending function
+const sendPushNotification = async (fcmToken, title, body) => {
+  const message = {
+    notification: {
+      title: title,
+      body: body,
+    },
+    token: fcmToken,
+  };
+
+  try {
+    const response = await admin.messaging().send(message);
+    console.log("✅ Notification sent successfully:", response);
+  } catch (error) {
+    console.error("❌ Error sending notification:", error);
+  }
+};
+
+// Example usage
+const fcmToken = "fRBy8lleTWOCEetYyb7elg:APA91bEcR9VidQSf739WJXdnr5S_TqSso9wechS8VRS-R1cQLQgDyTxYFue6hRNg5pDeIEgQSHByHFPDpyJWAvhoC8EaXWfJbSBP7n5ClL3WjsCX0FkKXSU"; // Copy from browser console
+sendPushNotification(fcmToken, "🚨 Test Notification", "Hello from Node.js server!");
