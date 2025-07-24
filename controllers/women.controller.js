@@ -1,6 +1,21 @@
 const Woman = require("../models/women.model");
 const Police = require("../models/user.model");
 const admin = require("../fcmService"); // ✅ Import firebase admin
+const NodeGeocoder = require('node-geocoder');
+
+const geocoder = NodeGeocoder({
+  provider: 'openstreetmap'  // No key required
+});
+async function getAddress(lat, lon) {
+  try {
+    const res = await geocoder.reverse({ lat, lon });
+    return res[0]?.formattedAddress || 'Unknown location';
+  } catch (err) {
+    console.error("Geocoding error:", err);
+    return 'Unknown location';
+  }
+}
+
 
 function calculateDistance(lat1, lon1, lat2, lon2) {
   const toRadians = degree => degree * (Math.PI / 180);
@@ -40,6 +55,8 @@ exports.womendatapost = async (req, res) => {
 
     const allPolice = await Police.find({});
 
+    const locationname = await getAddress(latitude, longitude);  // ✅ Get formatted location once
+console.log("location name",locationname)
     for (const police of allPolice) {
       const pLat = police.location.latitude;
       const pLon = police.location.longitude;
@@ -47,18 +64,14 @@ exports.womendatapost = async (req, res) => {
       const distance = calculateDistance(latitude, longitude, pLat, pLon);
 
       if (distance <= 10 && police.fcmToken) {
-        const now = new Date();
-        const formattedDate = now.toLocaleDateString('en-GB');
-        const formattedTime = now.toLocaleTimeString('en-US', {
-          hour: '2-digit',
-          minute: '2-digit',
-          hour12: true
-        });
+        console.log("police.fcmToken", police.fcmToken);
+        console.log("notification start");
+const capitalized = name.charAt(0).toUpperCase() + name.slice(1);
 
         const payload = {
           notification: {
-            title: `🚨 Emergency Alert: ${name}`,
-            body: `At ${formattedTime} on ${formattedDate}, distance: ${distance.toFixed(2)} km`,
+            title: `🚨 Emergency Alert: ${capitalized}`,
+            body: `📍 ${locationname}, Distance: ${distance.toFixed(2)} km`,
           },
           data: {
             womanName: name,
@@ -69,8 +82,11 @@ exports.womendatapost = async (req, res) => {
           token: police.fcmToken
         };
 
+        console.log("notification processing");
+
         try {
           await admin.messaging().send(payload);
+          console.log("notification sent");
           console.log(`✅ FCM sent to ${police.stationName}`);
         } catch (error) {
           console.error("❌ Error sending FCM:", error.message);
