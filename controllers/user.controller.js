@@ -47,7 +47,7 @@ exports.Police_Register = async (req, res) => {
       phoneNumber,
       password: hashedPassword,
       location,
-      PolicePosition,
+
       secondaryNumbers
     });
 
