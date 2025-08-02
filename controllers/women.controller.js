@@ -2,6 +2,9 @@ const Woman = require("../models/women.model");
 const Police = require("../models/user.model");
 const admin = require("../fcmService"); // ✅ Import firebase admin
 const NodeGeocoder = require('node-geocoder');
+const { v4: uuidv4 } = require("uuid");
+const NotificationStatus=require("../models/NotificationStatusSchema")
+
 
 const options = {
   provider: 'openstreetmap',
@@ -37,13 +40,13 @@ function calculateDistance(lat1, lon1, lat2, lon2) {
   return R * c;
 }
 
-async function sendNotification(fcmToken, title, body, data) {
+async function sendNotification(fcmToken, title, body) {
   if (!fcmToken) return false;
   try {
     await admin.messaging().send({
       token: fcmToken,
-      notification: { title, body },
-      data
+      notification: { title, body }
+
     });
     return true;
   } catch (err) {
@@ -87,8 +90,8 @@ exports.womendatapost = async (req, res) => {
         };
 
         // 1️⃣ Send to Primary
-        console.log(`📢 Sending to primary: ${police.phoneNumber}`);
-        await sendNotification(police.fcmToken, `🚨 Emergency Alert: ${name}`, `📍 ${locationName}, Distance: ${distance.toFixed(2)} km`, payload);
+        console.log(`📢 Sending to primary: ${police.phoneNumber} and ${payload.notificationId}`);
+        await sendNotification(police.fcmToken, `🚨 Emergency Alert: ${name}`, `📍 ${locationName}, Distance: ${distance.toFixed(2)} km ${payload.notificationId}`, );
 
         // 2️⃣ Wait 10s for confirmation, then send to Secondary
         setTimeout(async () => {
@@ -99,11 +102,11 @@ exports.womendatapost = async (req, res) => {
             for (const sec of police.secondaryNumbers) {
               if (sec.fcmToken) {
                 console.log(`⏩ Sending fallback to: ${sec.number}`);
-                await sendNotification(sec.fcmToken, `🚨 Emergency Alert (Fallback): ${name}`, `📍 ${locationName}, Distance: ${distance.toFixed(2)} km`, payload);
+                await sendNotification(sec.fcmToken, `🚨 Emergency Alert (Fallback): ${name}`, `📍 ${locationName}, Distance: ${distance.toFixed(2)} km ${payload.notificationId}`, );
               }
             }
           }
-        }, 10000);
+        }, 20000);
       }
     }
 

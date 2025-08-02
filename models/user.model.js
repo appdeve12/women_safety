@@ -16,7 +16,7 @@ const PoliceSchema = new mongoose.Schema({
       position: {
         type: String,
         enum: [
-          'sp', 'asp', 'acp', 'dcp', 'ssp', 'dig', 'adgp',
+          'sp', 'asp', 'acp', 'dcp', 'ssp', 'dig', 'adgp','dgp',
           'dsp', 'inspector', 'si', 'asi', 'sho', 'iso', 'constable'
         ],
         required: true
