@@ -7,7 +7,8 @@ const NotificationStatusSchema = new mongoose.Schema({
   sentTo: String, // "primary" or "secondary"
   status: { type: String, enum: ["sent", "delivered"], default: "sent" },
   sentAt: { type: Date, default: Date.now },
-  deliveredAt: { type: Date }
+  deliveredAt: { type: Date },
+usernotification:{type:mongoose.Mongoose.Schema.type.objectId,ref:"Police"}
 });
 
 module.exports = mongoose.model("NotificationStatus", NotificationStatusSchema);

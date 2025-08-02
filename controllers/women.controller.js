@@ -75,6 +75,7 @@ exports.womendatapost = async (req, res) => {
         
         const notificationId = uuidv4();
         await NotificationStatus.create({
+          usernotification:police._id,
           notificationId,
           stationId: police._id.toString(),
           womanId: newWoman._id.toString(),
@@ -82,6 +83,7 @@ exports.womendatapost = async (req, res) => {
         });
 
         const payload = {
+
           notificationId,
           womanName: name,
           latitude: latitude.toString(),
@@ -122,7 +124,8 @@ exports.womendatapost = async (req, res) => {
 exports.getWomenNearByPoliceStation = async (req, res) => {
   try {
     const { policeId } = req.params;
-
+const notificationdata=await NotificationStatus.findById({usernotification:policeId})
+console.log("notificationdata",notificationdata)
     const police = await Police.findById(policeId);
     if (!police || !police.location?.latitude || !police.location?.longitude) {
       return res.status(404).json({ error: "Police station not found or missing coordinates" });
@@ -170,6 +173,7 @@ exports.getWomenNearByPoliceStation = async (req, res) => {
         latitude: policeLat,
         longitude: policeLon
       },
+      notificationdata,
       nearbyWomen
     });
   } catch (err) {
