@@ -5,8 +5,8 @@ const NodeGeocoder = require('node-geocoder');
 
 const options = {
   provider: 'openstreetmap',
-  // httpAdapter: 'https', // <-- use HTTPS
-  // formatter: null
+  httpAdapter: 'https', // <-- use HTTPS
+  formatter: null
 };
 
 const geocoder = NodeGeocoder(options);
@@ -37,74 +37,83 @@ function calculateDistance(lat1, lon1, lat2, lon2) {
   return R * c;
 }
 
+async function sendNotification(fcmToken, title, body, data) {
+  if (!fcmToken) return false;
+  try {
+    await admin.messaging().send({
+      token: fcmToken,
+      notification: { title, body },
+      data
+    });
+    return true;
+  } catch (err) {
+    console.error("Error sending notification:", err.message);
+    return false;
+  }
+}
+
 exports.womendatapost = async (req, res) => {
   try {
     const { name, latitude, longitude } = req.body;
-
-    if (!name || !latitude || !longitude) {
-      return res.status(400).json({ error: "Missing data" });
-    }
-
-    const newWoman = new Woman({
+    const newWoman = await Woman.create({
       name,
       location: {
         type: "Point",
-        coordinates: [parseFloat(longitude), parseFloat(latitude)],
-      },
-      timestamp: new Date(),
-      addedBy: req.user?.id || null
+        coordinates: [parseFloat(longitude), parseFloat(latitude)]
+      }
     });
 
-    await newWoman.save();
-
+    const locationName = await getAddress(latitude, longitude);
     const allPolice = await Police.find({});
 
-    const locationname = await getAddress(latitude, longitude);  // ✅ Get formatted location once
-console.log("location name",locationname)
     for (const police of allPolice) {
-      const pLat = police.location.latitude;
-      const pLon = police.location.longitude;
-
-      const distance = calculateDistance(latitude, longitude, pLat, pLon);
-
-      if (distance <= 10 && police.fcmToken) {
-        console.log("police.fcmToken", police.fcmToken);
-        console.log("notification start");
-const capitalized = name.charAt(0).toUpperCase() + name.slice(1);
+      const distance = calculateDistance(latitude, longitude, police.location.latitude, police.location.longitude);
+      if (distance <= 10) {
+        
+        const notificationId = uuidv4();
+        await NotificationStatus.create({
+          notificationId,
+          stationId: police._id.toString(),
+          womanId: newWoman._id.toString(),
+          sentTo: "primary"
+        });
 
         const payload = {
-          notification: {
-            title: `🚨 Emergency Alert: ${capitalized}`,
-            body: `📍 ${locationname}, Distance: ${distance.toFixed(2)} km`,
-          },
-          data: {
-            womanName: name,
-            latitude: latitude.toString(),
-            longitude: longitude.toString(),
-            stationId: police._id.toString(),
-          },
-          token: police.fcmToken
+          notificationId,
+          womanName: name,
+          latitude: latitude.toString(),
+          longitude: longitude.toString(),
+          stationId: police._id.toString()
         };
 
-        console.log("notification processing");
+        // 1️⃣ Send to Primary
+        console.log(`📢 Sending to primary: ${police.phoneNumber}`);
+        await sendNotification(police.fcmToken, `🚨 Emergency Alert: ${name}`, `📍 ${locationName}, Distance: ${distance.toFixed(2)} km`, payload);
 
-        try {
-          await admin.messaging().send(payload);
-          console.log("notification sent");
-          console.log(`✅ FCM sent to ${police.stationName}`);
-        } catch (error) {
-          console.error("❌ Error sending FCM:", error.message);
-        }
+        // 2️⃣ Wait 10s for confirmation, then send to Secondary
+        setTimeout(async () => {
+          const record = await NotificationStatus.findOne({ notificationId, stationId: police._id.toString() });
+          const confirmed = record && record.status === "delivered"; // ✅ अब DB से check होगा
+          
+          if (!confirmed && police.secondaryNumbers?.length) {
+            for (const sec of police.secondaryNumbers) {
+              if (sec.fcmToken) {
+                console.log(`⏩ Sending fallback to: ${sec.number}`);
+                await sendNotification(sec.fcmToken, `🚨 Emergency Alert (Fallback): ${name}`, `📍 ${locationName}, Distance: ${distance.toFixed(2)} km`, payload);
+              }
+            }
+          }
+        }, 10000);
       }
     }
 
-    res.status(201).json({ status: 201, message: "Woman added and nearby police notified via FCM." });
-
+    res.status(201).json({ status: 201, message: "Woman added and notifications sent" });
   } catch (err) {
-    console.error("Error saving woman:", err);
+    console.error(err);
     res.status(500).json({ error: "Failed to save woman data" });
   }
 };
+
 
 // ✅ GET /women/getwomennear/:policeId
 exports.getWomenNearByPoliceStation = async (req, res) => {

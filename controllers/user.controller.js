@@ -14,7 +14,7 @@ exports.Police_Register = async (req, res) => {
       phoneNumber,
       password,
       location,
-   
+
       secondaryNumbers // expected array of { number, position }
     } = req.body;
 
@@ -67,27 +67,36 @@ exports.Police_Register = async (req, res) => {
 
 exports.Police_Login = async (req, res) => {
   try {
-    const { phoneNumber, password } = req.body;
+    const { phoneNumber, password, fcmToken } = req.body;
 
-    // First try to find by main phoneNumber
     let police = await Police.findOne({ phoneNumber });
+    let isSecondary = false;
 
-    // If not found, try searching inside secondaryNumbers array
     if (!police) {
-      police = await Police.findOne({ 
-        "secondaryNumbers.number": phoneNumber 
-      });
+      police = await Police.findOne({ "secondaryNumbers.number": phoneNumber });
+      isSecondary = true;
     }
 
-    // Still not found
     if (!police) {
       return res.status(401).json({ error: "Police not found" });
     }
 
-    // Match password
     const isMatch = await bcrypt.compare(password, police.password);
     if (!isMatch) {
       return res.status(401).json({ error: "Invalid password" });
+    }
+
+    // ✅ FCM token update logic
+    if (fcmToken) {
+      if (isSecondary) {
+        const index = police.secondaryNumbers.findIndex(sec => sec.number === phoneNumber);
+        if (index !== -1) {
+          police.secondaryNumbers[index].fcmToken = fcmToken;
+        }
+      } else {
+        police.fcmToken = fcmToken;
+      }
+      await police.save();
     }
 
     const token = jwt.sign(
@@ -100,14 +109,7 @@ exports.Police_Login = async (req, res) => {
       status: 200,
       message: "Login successful",
       token,
-      police: {
-        id: police._id,
-        stationName: police.stationName,
-        phoneNumber: police.phoneNumber,
-        secondaryNumbers: police.secondaryNumbers,
-        PolicePosition: police.PolicePosition,
-        location: police.location
-      }
+      police
     });
 
   } catch (err) {
@@ -116,6 +118,17 @@ exports.Police_Login = async (req, res) => {
   }
 };
 
+exports.All_login=async(req,res)=>{
+  try{
+    const fetchalllogin= await Police.find();
+    res.status(200).json({
+      message:"all data fetch successfully",fetchalllogin
+    })
+  }
+  catch(error){
+    
+  }
+}
 // Auto Update Police Location
 exports.Update_Location = async (req, res) => {
   try {

@@ -10,18 +10,21 @@ const PoliceSchema = new mongoose.Schema({
     latitude: Number,
     longitude: Number
   },
-
   secondaryNumbers: [
     {
       number: { type: String, required: true },
       position: {
         type: String,
-        enum: ['sp', 'asp','acp','dcp','dgp', 'dsp', 'inspector', 'si', 'asi', 'sho', 'iso', 'constable','adgp','dig','ssp'],
+        enum: [
+          'sp', 'asp', 'acp', 'dcp', 'ssp', 'dig', 'adgp',
+          'dsp', 'inspector', 'si', 'asi', 'sho', 'iso', 'constable'
+        ],
         required: true
-      }
+      },
+      fcmToken: { type: String, default: null } // ✅ नया फील्ड
     }
   ],
-  fcmToken: {
+  fcmToken: { // Primary Police का FCM token
     type: String,
     default: null
   }
