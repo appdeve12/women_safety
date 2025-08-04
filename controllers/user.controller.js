@@ -158,7 +158,7 @@ exports.Police_UpdateProfile = async (req, res) => {
     res.status(500).json({ error: "Profile update failed" });
   }
 };
-c
+
 
 exports.All_login=async(req,res)=>{
   try{
