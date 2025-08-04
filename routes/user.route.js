@@ -6,6 +6,7 @@ const Police = require("../models/user.model"); // ✅ Add this line
 const NotificationStatus=require("../models/NotificationStatusSchema")
 router.post('/register', usercontroller.Police_Register);
 router.post('/login', usercontroller.Police_Login);
+router.patch("/police/update-profile", authMiddleware, usercontroller.Police_UpdateProfile);
 router.get('/alluser', usercontroller.All_login);
 router.post('/update-location', authMiddleware, usercontroller.Update_Location);
 router.post("/confirm-notification", async (req, res) => {
