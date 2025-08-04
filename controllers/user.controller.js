@@ -121,18 +121,13 @@ exports.Police_Login = async (req, res) => {
 exports.Police_UpdateProfile = async (req, res) => {
   try {
     const policeId = req.user.id; // assuming authentication middleware sets `req.user`
-    const {
-   
-      secondaryNumbers, // optional array of { number, position }
-    } = req.body;
+    const { secondaryNumbers } = req.body;
 
     const police = await Police.findById(policeId);
 
     if (!police) {
       return res.status(404).json({ error: "Police not found" });
     }
-
-   
 
     if (secondaryNumbers) {
       if (!Array.isArray(secondaryNumbers)) {
@@ -145,8 +140,10 @@ exports.Police_UpdateProfile = async (req, res) => {
         }
       }
 
-      // Overwrite or add to the existing list
-      police.secondaryNumbers = secondaryNumbers;
+      // Append new secondary numbers without duplicates (by number)
+      const existingNumbers = new Set(police.secondaryNumbers.map(s => s.number));
+      const newUniqueNumbers = secondaryNumbers.filter(s => !existingNumbers.has(s.number));
+      police.secondaryNumbers.push(...newUniqueNumbers);
     }
 
     await police.save();
@@ -161,7 +158,7 @@ exports.Police_UpdateProfile = async (req, res) => {
     res.status(500).json({ error: "Profile update failed" });
   }
 };
-
+c
 
 exports.All_login=async(req,res)=>{
   try{
