@@ -136,14 +136,18 @@ exports.womendatapost = async (req, res) => {
 
 
 // ✅ GET /women/getwomennear/:policeId
+
 exports.getWomenNearByPoliceStation = async (req, res) => {
   try {
     const { policeId } = req.params;
+    const { phoneNumber } = req.query; // ✅ passed from frontend
 
     const police = await Police.findById(policeId);
-    if (!police || !police.location?.latitude || !police.location?.longitude) {
-      return res.status(404).json({ error: "Police station not found or missing coordinates" });
+    if (!police) {
+      return res.status(404).json({ error: "Police station not found" });
     }
+
+    const isSecondary = police.secondaryNumbers.some(sec => sec.number === phoneNumber);
 
     const policeLat = police.location.latitude;
     const policeLon = police.location.longitude;
@@ -156,32 +160,32 @@ exports.getWomenNearByPoliceStation = async (req, res) => {
       const distance = calculateDistance(lat, lon, policeLat, policeLon);
 
       if (distance <= 10) {
-        // Check notification status for this woman and police station
-        const notificationRecord = await NotificationStatus.findOne({
-          womanId: woman._id.toString(),
+        const notificationIdRecord = await NotificationStatus.findOne({
           stationId: police._id.toString(),
-          sentTo: "primary"
+          womanId: woman._id.toString()
         });
 
-        // Only add to nearbyWomen if confirmation NOT received (status !== 'delivered')
-        if (!notificationRecord || notificationRecord.status !== "delivered") {
-          const timestamp = new Date(woman.timestamp);
-          const formattedDate = timestamp.toLocaleDateString('en-GB');
-          const formattedTime = timestamp.toLocaleTimeString('en-US', {
-            hour: '2-digit',
-            minute: '2-digit',
-            hour12: true
-          });
+        const isDelivered = notificationIdRecord?.status === 'delivered';
 
-          nearbyWomen.push({
-            name: woman.name,
-            latitude: lat,
-            longitude: lon,
-            date: formattedDate,
-            time: formattedTime,
-            distance: distance.toFixed(2) + " km"
-          });
-        }
+        // ✅ Skip if secondary and already delivered
+        if (isSecondary && isDelivered) continue;
+
+        const timestamp = new Date(woman.timestamp);
+        const formattedDate = timestamp.toLocaleDateString('en-GB');
+        const formattedTime = timestamp.toLocaleTimeString('en-US', {
+          hour: '2-digit',
+          minute: '2-digit',
+          hour12: true
+        });
+
+        nearbyWomen.push({
+          name: woman.name,
+          latitude: lat,
+          longitude: lon,
+          date: formattedDate,
+          time: formattedTime,
+          distance: distance.toFixed(2) + " km"
+        });
       }
     }
 
@@ -195,9 +199,9 @@ exports.getWomenNearByPoliceStation = async (req, res) => {
       },
       nearbyWomen
     });
+
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Failed to fetch nearby women" });
   }
 };
-
