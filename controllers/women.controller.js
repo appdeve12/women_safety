@@ -139,7 +139,7 @@ exports.womendatapost = async (req, res) => {
 
 exports.getWomenNearByPoliceStation = async (req, res) => {
   try {
-    const { policeId } = req.params;
+    const policeId = req.user.id;
     const { phoneNumber } = req.query; // ✅ passed from frontend
 
     const police = await Police.findById(policeId);

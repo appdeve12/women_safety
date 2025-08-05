@@ -5,6 +5,7 @@ const auth = require("../auth/authmiddleware"); // 🛡️ import auth middlewar
 
 // 🔐 Secure routes
 router.post('/womendata', womencontroller.womendatapost);
-router.get('/getwomennear/:policeId', auth, womencontroller.getWomenNearByPoliceStation);
+router.get('/getwomennear', auth, womencontroller.getWomenNearByPoliceStation);
+
 
 module.exports = router;
