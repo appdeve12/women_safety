@@ -40,12 +40,14 @@ function calculateDistance(lat1, lon1, lat2, lon2) {
   return R * c;
 }
 
-async function sendNotification(fcmToken, title, body) {
+async function sendNotification(fcmToken, title, body,dataPayload = {}) {
+  console.log("dataPayload",dataPayload)
   if (!fcmToken) return false;
   try {
     await admin.messaging().send({
       token: fcmToken,
-      notification: { title, body }
+      notification: { title, body },
+      data: dataPayload 
 
     });
     return true;
@@ -92,23 +94,36 @@ exports.womendatapost = async (req, res) => {
         };
 
         // 1️⃣ Send to Primary
-        console.log(`📢 Sending to primary: ${police.phoneNumber} and ${payload.notificationId}`);
-        await sendNotification(police.fcmToken, `🚨 Emergency Alert: ${name}`, `📍 ${locationName}, Distance: ${distance.toFixed(2)} km ${payload.notificationId}`, );
+        console.log(`📢 Sending to primary: ${police.phoneNumber} `);
+        await sendNotification(police.fcmToken, `🚨 Emergency Alert: ${name}`, `📍 ${locationName}, Distance: ${distance.toFixed(2)} km `,  {
+          notificationId,
+          womanName: name,
+          latitude: latitude.toString(),
+          longitude: longitude.toString(),
+          stationId: police._id.toString()
+        });
 
         // 2️⃣ Wait 10s for confirmation, then send to Secondary
         setTimeout(async () => {
           const record = await NotificationStatus.findOne({ notificationId, stationId: police._id.toString() });
+          console.log("record",record)
           const confirmed = record && record.status === "delivered"; // ✅ अब DB से check होगा
-          
+          console.log("confirmed",record,record.status)
           if (!confirmed && police.secondaryNumbers?.length) {
             for (const sec of police.secondaryNumbers) {
               if (sec.fcmToken) {
                 console.log(`⏩ Sending fallback to: ${sec.number}`);
-                await sendNotification(sec.fcmToken, `🚨 Emergency Alert (Fallback): ${name}`, `📍 ${locationName}, Distance: ${distance.toFixed(2)} km ${payload.notificationId}`, );
+                await sendNotification(sec.fcmToken, `🚨 Emergency Alert (Fallback): ${name}`, `📍 ${locationName}, Distance: ${distance.toFixed(2)} km `, {
+                  notificationId,
+                  womanName: name,
+                  latitude: latitude.toString(),
+                  longitude: longitude.toString(),
+                  stationId: police._id.toString()
+                } );
               }
             }
           }
-        }, 20000);
+        }, 30000);
       }
     }
 
@@ -124,8 +139,7 @@ exports.womendatapost = async (req, res) => {
 exports.getWomenNearByPoliceStation = async (req, res) => {
   try {
     const { policeId } = req.params;
-const notificationdata=await NotificationStatus.findById({usernotification:policeId})
-console.log("notificationdata",notificationdata)
+
     const police = await Police.findById(policeId);
     if (!police || !police.location?.latitude || !police.location?.longitude) {
       return res.status(404).json({ error: "Police station not found or missing coordinates" });
