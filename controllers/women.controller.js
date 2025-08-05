@@ -156,26 +156,32 @@ exports.getWomenNearByPoliceStation = async (req, res) => {
       const distance = calculateDistance(lat, lon, policeLat, policeLon);
 
       if (distance <= 10) {
-        const timestamp = new Date(woman.timestamp);
-        const formattedDate = timestamp.toLocaleDateString('en-GB');
-        const formattedTime = timestamp.toLocaleTimeString('en-US', {
-          hour: '2-digit',
-          minute: '2-digit',
-          hour12: true
+        // Check notification status for this woman and police station
+        const notificationRecord = await NotificationStatus.findOne({
+          womanId: woman._id.toString(),
+          stationId: police._id.toString(),
+          sentTo: "primary"
         });
 
-        const womanData = {
-          name: woman.name,
-          latitude: lat,
-          longitude: lon,
-          date: formattedDate,
-          time: formattedTime,
-          distance: distance.toFixed(2) + " km"
-        };
+        // Only add to nearbyWomen if confirmation NOT received (status !== 'delivered')
+        if (!notificationRecord || notificationRecord.status !== "delivered") {
+          const timestamp = new Date(woman.timestamp);
+          const formattedDate = timestamp.toLocaleDateString('en-GB');
+          const formattedTime = timestamp.toLocaleTimeString('en-US', {
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: true
+          });
 
-        nearbyWomen.push(womanData);
-
-
+          nearbyWomen.push({
+            name: woman.name,
+            latitude: lat,
+            longitude: lon,
+            date: formattedDate,
+            time: formattedTime,
+            distance: distance.toFixed(2) + " km"
+          });
+        }
       }
     }
 
@@ -187,7 +193,6 @@ exports.getWomenNearByPoliceStation = async (req, res) => {
         latitude: policeLat,
         longitude: policeLon
       },
-     
       nearbyWomen
     });
   } catch (err) {
@@ -195,3 +200,4 @@ exports.getWomenNearByPoliceStation = async (req, res) => {
     res.status(500).json({ error: "Failed to fetch nearby women" });
   }
 };
+
