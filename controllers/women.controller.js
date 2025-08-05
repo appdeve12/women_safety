@@ -187,7 +187,7 @@ exports.getWomenNearByPoliceStation = async (req, res) => {
         latitude: policeLat,
         longitude: policeLon
       },
-      notificationdata,
+     
       nearbyWomen
     });
   } catch (err) {
