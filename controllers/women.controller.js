@@ -105,25 +105,45 @@ exports.womendatapost = async (req, res) => {
 
         // 2️⃣ Wait 10s for confirmation, then send to Secondary
         setTimeout(async () => {
-          const record = await NotificationStatus.findOne({ notificationId, stationId: police._id.toString() });
-          console.log("record",record)
-          const confirmed = record && record.status === "delivered"; // ✅ अब DB से check होगा
-          console.log("confirmed",record,record.status)
-          if (!confirmed && police.secondaryNumbers?.length) {
-            for (const sec of police.secondaryNumbers) {
-              if (sec.fcmToken) {
-                console.log(`⏩ Sending fallback to: ${sec.number}`);
-                await sendNotification(sec.fcmToken, `🚨 Emergency Alert (Fallback): ${name}`, `📍 ${locationName}, Distance: ${distance.toFixed(2)} km `, {
+          const RANK_ORDER = [
+            'constable', 'iso', 'sho', 'asi', 'si', 'inspector',
+            'dsp', 'acp', 'asp', 'sp', 'dcp', 'ssp', 'dig', 'adgp', 'dgp'
+          ];
+        
+          const sortedSecondary = [...police.secondaryNumbers].sort(
+            (a, b) => RANK_ORDER.indexOf(a.position) - RANK_ORDER.indexOf(b.position)
+          );
+        
+          for (const sec of sortedSecondary) {
+            // ✅ Before sending to this secondary officer, check status
+            const statusRecord = await NotificationStatus.findOne({
+              notificationId,
+              stationId: police._id.toString()
+            });
+        
+            if (statusRecord?.status === 'delivered') {
+              console.log(`✅ Notification already delivered, stopping at ${sec.number}`);
+              break; // 🔁 Stop sending further
+            }
+        
+            if (sec.fcmToken) {
+              console.log(`⏩ Sending fallback to (${sec.position}): ${sec.number}`);
+              await sendNotification(
+                sec.fcmToken,
+                `🚨 Emergency Alert (Fallback): ${name}`,
+                `📍 ${locationName}, Distance: ${distance.toFixed(2)} km `,
+                {
                   notificationId,
                   womanName: name,
                   latitude: latitude.toString(),
                   longitude: longitude.toString(),
                   stationId: police._id.toString()
-                } );
-              }
+                }
+              );
             }
           }
         }, 30000);
+        
       }
     }
 
