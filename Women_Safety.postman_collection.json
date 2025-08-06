@@ -1,0 +1,255 @@
+{
+	"info": {
+		"_postman_id": "56987ba4-1d09-4ac0-ba54-8ec63d0b967c",
+		"name": "Women_Safety",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "46679644"
+	},
+	"item": [
+		{
+			"name": "register",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n\r\n  \"state\": \"Uttar Pradesh\",\r\n  \"district\": \"Shamli\",\r\n  \"stationName\": \"Kairana khotvali\",\r\n  \"phoneNumber\": \"6396805859\",\r\n  \"password\": \"mypassword123\"\r\n \r\n}\r\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseURL}}/user/register",
+					"host": [
+						"{{baseURL}}"
+					],
+					"path": [
+						"user",
+						"register"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "getwomennear",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY4OTE5OTJkMTY2ZGRjODQ5MjI4YTFkYiIsInN0YXRpb25OYW1lIjoiQW1hd3MiLCJpYXQiOjE3NTQzODgyNTQsImV4cCI6MTc1NDk5MzA1NH0.bW4kyuuz-3fb14HVe6IcKWzhqXxM-nLWokeQhWMFp2U",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseURL}}/women/getwomennear/6891992d166ddc849228a1db?phoneNumber=7985490508",
+					"host": [
+						"{{baseURL}}"
+					],
+					"path": [
+						"women",
+						"getwomennear",
+						"6891992d166ddc849228a1db"
+					],
+					"query": [
+						{
+							"key": "phoneNumber",
+							"value": "7985490508"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "women_post",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY4N2IyZTIxY2IxODI1MDhjZDYxZjgxOSIsInN0YXRpb25OYW1lIjoiRHc2IiwiaWF0IjoxNzUzMzM2MDk2LCJleHAiOjE3NTM5NDA4OTZ9.Z-wpLGtdPGHJ8ddCY8dX1ZgJ-YIFo1LSSEwXAJy734U",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"name\": \"janvi\",\r\n  \"latitude\": 28.586197186833086,\r\n  \"longitude\": 77.05184737770911\r\n}\r\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseURL}}/women/womendata",
+					"host": [
+						"{{baseURL}}"
+					],
+					"path": [
+						"women",
+						"womendata"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "locationupdate",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY4NzllODdmMWI1ZTI1M2MwNmU1NjBjOSIsInN0YXRpb25OYW1lIjoiS2FpcmFuYSBraG90dmFsaSIsImlhdCI6MTc1MjgxOTkwNCwiZXhwIjoxNzUzNDI0NzA0fQ.dtlCnSX448xzK3Lx-QROVdv5sRzGBYZvsrUurBxag5k",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"latitude\":28.568162730245398, \r\n    \"longitude\":77.32463453293045\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseURL}}/user/update-location",
+					"host": [
+						"{{baseURL}}"
+					],
+					"path": [
+						"user",
+						"update-location"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "login",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY4NzllODdmMWI1ZTI1M2MwNmU1NjBjOSIsInN0YXRpb25OYW1lIjoiS2FpcmFuYSBraG90dmFsaSIsImlhdCI6MTc1MjgxOTkwNCwiZXhwIjoxNzUzNDI0NzA0fQ.dtlCnSX448xzK3Lx-QROVdv5sRzGBYZvsrUurBxag5k",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"phoneNumber\": \"6396805859\",\r\n  \"password\": \"mypassword123\"\r\n}\r\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseURL}}/user/login",
+					"host": [
+						"{{baseURL}}"
+					],
+					"path": [
+						"user",
+						"login"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "confirmnotification",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"notificationId\": \"0b4446f5-ce61-4add-a9b0-88d6facd758d\"\r\n\r\n}\r\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseURL}}/user/confirm-notification",
+					"host": [
+						"{{baseURL}}"
+					],
+					"path": [
+						"user",
+						"confirm-notification"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "update_profile",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY4NzllODdmMWI1ZTI1M2MwNmU1NjBjOSIsInN0YXRpb25OYW1lIjoiS2FpcmFuYSBraG90dmFsaSIsImlhdCI6MTc1MjgxOTkwNCwiZXhwIjoxNzUzNDI0NzA0fQ.dtlCnSX448xzK3Lx-QROVdv5sRzGBYZvsrUurBxag5k",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PATCH",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n \"secondaryNumbers\":[\r\n    {\"number\":\"876656654\",\"position\":\"adgp\"}\r\n  ]\r\n}\r\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseURL}}/user/police/update-profile",
+					"host": [
+						"{{baseURL}}"
+					],
+					"path": [
+						"user",
+						"police",
+						"update-profile"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"variable": [
+		{
+			"key": "baseURL",
+			"value": "http://localhost:5000",
+			"type": "default"
+		}
+	]
+}
