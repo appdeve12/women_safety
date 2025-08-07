@@ -104,45 +104,68 @@ exports.womendatapost = async (req, res) => {
         });
 
         // 2️⃣ Wait 10s for confirmation, then send to Secondary
+        const RANK_ORDER = [
+          'constable', 'iso', 'sho', 'asi', 'si', 'inspector',
+          'dsp', 'acp', 'asp', 'sp', 'dcp', 'ssp', 'dig', 'adgp', 'dgp'
+        ];
+        
         setTimeout(async () => {
-          const RANK_ORDER = [
-            'constable', 'iso', 'sho', 'asi', 'si', 'inspector',
-            'dsp', 'acp', 'asp', 'sp', 'dcp', 'ssp', 'dig', 'adgp', 'dgp'
-          ];
+          console.log("⏳ Starting fallback by rank");
         
           const sortedSecondary = [...police.secondaryNumbers].sort(
             (a, b) => RANK_ORDER.indexOf(a.position) - RANK_ORDER.indexOf(b.position)
           );
         
-          for (const sec of sortedSecondary) {
-            // ✅ Before sending to this secondary officer, check status
+          // Group officers by rank
+          const groupedByRank = {};
+          for (const officer of sortedSecondary) {
+            if (!groupedByRank[officer.position]) {
+              groupedByRank[officer.position] = [];
+            }
+            groupedByRank[officer.position].push(officer);
+          }
+        
+          for (const rank of RANK_ORDER) {
+            const officersInRank = groupedByRank[rank];
+            if (!officersInRank || officersInRank.length === 0) continue;
+        
+            console.log(`📣 Notifying rank: ${rank}`);
+        
+            for (const sec of officersInRank) {
+              if (sec.fcmToken) {
+                await sendNotification(
+                  sec.fcmToken,
+                  `🚨 Emergency Alert (Fallback - ${rank}): ${name}`,
+                  `📍 ${locationName}, Distance: ${distance.toFixed(2)} km `,
+                  {
+                    notificationId,
+                    womanName: name,
+                    latitude: latitude.toString(),
+                    longitude: longitude.toString(),
+                    stationId: police._id.toString()
+                  }
+                );
+              }
+            }
+        
+            // ⏳ Wait 30 seconds before moving to next rank
+            await new Promise(resolve => setTimeout(resolve, 30000));
+        
+            // ✅ Check if someone has accepted
             const statusRecord = await NotificationStatus.findOne({
               notificationId,
               stationId: police._id.toString()
             });
         
             if (statusRecord?.status === 'delivered') {
-              console.log(`✅ Notification already delivered, stopping at ${sec.number}`);
-              break; // 🔁 Stop sending further
-            }
-        
-            if (sec.fcmToken) {
-              console.log(`⏩ Sending fallback to (${sec.position}): ${sec.number}`);
-              await sendNotification(
-                sec.fcmToken,
-                `🚨 Emergency Alert (Fallback): ${name}`,
-                `📍 ${locationName}, Distance: ${distance.toFixed(2)} km `,
-                {
-                  notificationId,
-                  womanName: name,
-                  latitude: latitude.toString(),
-                  longitude: longitude.toString(),
-                  stationId: police._id.toString()
-                }
-              );
+              console.log(`✅ Delivered by rank: ${rank}. Stopping further notifications.`);
+              break;
+            } else {
+              console.log(`❌ No delivery at rank: ${rank}. Moving to next...`);
             }
           }
-        }, 30000);
+        }, 30000); // Initial 30s wait before starting fallback
+        
         
       }
     }
