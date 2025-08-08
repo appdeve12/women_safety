@@ -198,40 +198,40 @@ exports.getWomenNearByPoliceStation = async (req, res) => {
     const women = await Woman.find({});
     const nearbyWomen = [];
 
-for (const woman of women) {
-  const [lon, lat] = woman.location.coordinates;
-  const distance = calculateDistance(lat, lon, policeLat, policeLon);
+    for (const woman of women) {
+      const [lon, lat] = woman.location.coordinates;
+      const distance = calculateDistance(lat, lon, policeLat, policeLon);
 
-  if (distance <= 10) {
-    const notificationIdRecord = await NotificationStatus.findOne({
-      stationId: police._id.toString(),
-      womanId: woman._id.toString()
-    });
+      if (distance <= 10) {
+        const notificationIdRecord = await NotificationStatus.findOne({
+          stationId: police._id.toString(),
+          womanId: woman._id.toString()
+        });
 
-    const isDelivered = notificationIdRecord?.status === 'delivered';
+        const isDelivered = notificationIdRecord?.status === 'delivered';
 
-    // ✅ Skip if already delivered to this station, no matter who viewed it
-    if (isDelivered) continue;
+        // ✅ Skip if secondary and already delivered
+        if (isSecondary && isDelivered) continue;
 
-    const timestamp = new Date(woman.timestamp);
-    const formattedDate = timestamp.toLocaleDateString('en-GB');
-    const formattedTime = timestamp.toLocaleTimeString('en-US', {
-      hour: '2-digit',
-      minute: '2-digit',
-      hour12: true
-    });
+        const timestamp = new Date(woman.timestamp);
+        const formattedDate = timestamp.toLocaleDateString('en-GB');
+        const formattedTime = timestamp.toLocaleTimeString('en-US', {
+          hour: '2-digit',
+          minute: '2-digit',
+          hour12: true
+        });
 
-    nearbyWomen.push({
-      name: woman.name,
-      latitude: lat,
-      longitude: lon,
-      date: formattedDate,
-      time: formattedTime,
-      distance: distance.toFixed(2) + " km",
-    });
-  }
-}
+        nearbyWomen.push({
+          name: woman.name,
+          latitude: lat,
+          longitude: lon,
+          date: formattedDate,
+          time: formattedTime,
+          distance: distance.toFixed(2) + " km",
 
+        });
+      }
+    }
 
     res.status(200).json({
       status: 200,
