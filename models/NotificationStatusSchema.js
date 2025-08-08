@@ -8,6 +8,7 @@ const NotificationStatusSchema = new mongoose.Schema({
   status: { type: String, enum: ["sent", "delivered"], default: "sent" },
   sentAt: { type: Date, default: Date.now },
   deliveredAt: { type: Date },
+  deliveredBy: String 
 
   
 });

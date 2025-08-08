@@ -11,10 +11,10 @@ router.get('/alluser', usercontroller.All_login);
 router.post('/update-location', authMiddleware, usercontroller.Update_Location);
 router.post("/confirm-notification", async (req, res) => {
   try {
-    const { notificationId } = req.body;
+    const { notificationId, phoneNumber } = req.body;
 
-    if (!notificationId ) {
-      return res.status(400).json({ error: "notificationId and stationId required" });
+    if (!notificationId || !phoneNumber) {
+      return res.status(400).json({ error: "notificationId and phoneNumber are required" });
     }
 
     const record = await NotificationStatus.findOne({ notificationId });
@@ -24,6 +24,7 @@ router.post("/confirm-notification", async (req, res) => {
 
     record.status = "delivered";
     record.deliveredAt = new Date();
+    record.deliveredBy = phoneNumber; // ✅ Save which officer confirmed
     await record.save();
 
     res.status(200).json({ message: "Notification confirmed" });
@@ -32,6 +33,7 @@ router.post("/confirm-notification", async (req, res) => {
     res.status(500).json({ error: "Failed to confirm notification" });
   }
 });
+
 
 
 

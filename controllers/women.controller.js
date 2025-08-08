@@ -183,7 +183,7 @@ exports.womendatapost = async (req, res) => {
 exports.getWomenNearByPoliceStation = async (req, res) => {
   try {
     const policeId = req.user.id;
-    const { phoneNumber } = req.query; // ✅ passed from frontend
+    const { phoneNumber } = req.query; // Officer's phone number (from frontend)
 
     const police = await Police.findById(policeId);
     if (!police) {
@@ -208,10 +208,16 @@ exports.getWomenNearByPoliceStation = async (req, res) => {
           womanId: woman._id.toString()
         });
 
-        const isDelivered = notificationIdRecord?.status === 'delivered';
+        // ✅ If there is no record, allow only if officer is primary
+        if (!notificationIdRecord && isSecondary) continue;
 
-        // ✅ Skip if secondary and already delivered
-        if (isSecondary && isDelivered) continue;
+        // ✅ If delivered by someone else, skip
+        if (
+          notificationIdRecord?.status === 'delivered' &&
+          notificationIdRecord?.deliveredBy !== phoneNumber
+        ) {
+          continue;
+        }
 
         const timestamp = new Date(woman.timestamp);
         const formattedDate = timestamp.toLocaleDateString('en-GB');
@@ -227,8 +233,7 @@ exports.getWomenNearByPoliceStation = async (req, res) => {
           longitude: lon,
           date: formattedDate,
           time: formattedTime,
-          distance: distance.toFixed(2) + " km",
-
+          distance: distance.toFixed(2) + " km"
         });
       }
     }
@@ -250,3 +255,4 @@ exports.getWomenNearByPoliceStation = async (req, res) => {
     res.status(500).json({ error: "Failed to fetch nearby women" });
   }
 };
+
