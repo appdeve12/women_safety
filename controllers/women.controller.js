@@ -3,7 +3,7 @@ const Police = require("../models/user.model");
 const admin = require("../fcmService"); // ✅ Import firebase admin
 const NodeGeocoder = require('node-geocoder');
 const { v4: uuidv4 } = require("uuid");
-const NotificationStatus=require("../models/NotificationStatusSchema")
+const NotificationStatus = require("../models/NotificationStatusSchema")
 
 
 const options = {
@@ -40,14 +40,14 @@ function calculateDistance(lat1, lon1, lat2, lon2) {
   return R * c;
 }
 
-async function sendNotification(fcmToken, title, body,dataPayload = {}) {
-  console.log("dataPayload",dataPayload)
+async function sendNotification(fcmToken, title, body, dataPayload = {}) {
+  console.log("dataPayload", dataPayload)
   if (!fcmToken) return false;
   try {
     await admin.messaging().send({
       token: fcmToken,
       notification: { title, body },
-      data: dataPayload 
+      data: dataPayload
 
     });
     return true;
@@ -74,10 +74,10 @@ exports.womendatapost = async (req, res) => {
     for (const police of allPolice) {
       const distance = calculateDistance(latitude, longitude, police.location.latitude, police.location.longitude);
       if (distance <= 10) {
-        
+
         const notificationId = uuidv4();
         await NotificationStatus.create({
-          usernotification:police._id,
+          usernotification: police._id,
           notificationId,
           stationId: police._id.toString(),
           womanId: newWoman._id.toString(),
@@ -95,7 +95,7 @@ exports.womendatapost = async (req, res) => {
 
         // 1️⃣ Send to Primary
         console.log(`📢 Sending to primary: ${police.phoneNumber} `);
-        await sendNotification(police.fcmToken, `🚨 Emergency Alert: ${name}`, `📍 ${locationName}, Distance: ${distance.toFixed(2)} km `,  {
+        await sendNotification(police.fcmToken, `🚨 Emergency Alert: ${name}`, `📍 ${locationName}, Distance: ${distance.toFixed(2)} km `, {
           notificationId,
           womanName: name,
           latitude: latitude.toString(),
@@ -108,14 +108,14 @@ exports.womendatapost = async (req, res) => {
           'constable', 'iso', 'sho', 'asi', 'si', 'inspector',
           'dsp', 'acp', 'asp', 'sp', 'dcp', 'ssp', 'dig', 'adgp', 'dgp'
         ];
-        
+
         setTimeout(async () => {
           console.log("⏳ Starting fallback by rank");
-        
+
           const sortedSecondary = [...police.secondaryNumbers].sort(
             (a, b) => RANK_ORDER.indexOf(a.position) - RANK_ORDER.indexOf(b.position)
           );
-        
+
           // Group officers by rank
           const groupedByRank = {};
           for (const officer of sortedSecondary) {
@@ -124,13 +124,13 @@ exports.womendatapost = async (req, res) => {
             }
             groupedByRank[officer.position].push(officer);
           }
-        
+
           for (const rank of RANK_ORDER) {
             const officersInRank = groupedByRank[rank];
             if (!officersInRank || officersInRank.length === 0) continue;
-        
+
             console.log(`📣 Notifying rank: ${rank}`);
-        
+
             for (const sec of officersInRank) {
               if (sec.fcmToken) {
                 await sendNotification(
@@ -147,16 +147,16 @@ exports.womendatapost = async (req, res) => {
                 );
               }
             }
-        
+
             // ⏳ Wait 30 seconds before moving to next rank
             await new Promise(resolve => setTimeout(resolve, 30000));
-        
+
             // ✅ Check if someone has accepted
             const statusRecord = await NotificationStatus.findOne({
               notificationId,
               stationId: police._id.toString()
             });
-        
+
             if (statusRecord?.status === 'delivered') {
               console.log(`✅ Delivered by rank: ${rank}. Stopping further notifications.`);
               break;
@@ -165,8 +165,8 @@ exports.womendatapost = async (req, res) => {
             }
           }
         }, 30000); // Initial 30s wait before starting fallback
-        
-        
+
+
       }
     }
 
@@ -198,40 +198,40 @@ exports.getWomenNearByPoliceStation = async (req, res) => {
     const women = await Woman.find({});
     const nearbyWomen = [];
 
-    for (const woman of women) {
-      const [lon, lat] = woman.location.coordinates;
-      const distance = calculateDistance(lat, lon, policeLat, policeLon);
+for (const woman of women) {
+  const [lon, lat] = woman.location.coordinates;
+  const distance = calculateDistance(lat, lon, policeLat, policeLon);
 
-      if (distance <= 10) {
-        const notificationIdRecord = await NotificationStatus.findOne({
-          stationId: police._id.toString(),
-          womanId: woman._id.toString()
-        });
+  if (distance <= 10) {
+    const notificationIdRecord = await NotificationStatus.findOne({
+      stationId: police._id.toString(),
+      womanId: woman._id.toString()
+    });
 
-        const isDelivered = notificationIdRecord?.status === 'delivered';
+    const isDelivered = notificationIdRecord?.status === 'delivered';
 
-        // ✅ Skip if secondary and already delivered
-        if (isSecondary && isDelivered) continue;
+    // ✅ Skip if already delivered to this station, no matter who viewed it
+    if (isDelivered) continue;
 
-        const timestamp = new Date(woman.timestamp);
-        const formattedDate = timestamp.toLocaleDateString('en-GB');
-        const formattedTime = timestamp.toLocaleTimeString('en-US', {
-          hour: '2-digit',
-          minute: '2-digit',
-          hour12: true
-        });
+    const timestamp = new Date(woman.timestamp);
+    const formattedDate = timestamp.toLocaleDateString('en-GB');
+    const formattedTime = timestamp.toLocaleTimeString('en-US', {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true
+    });
 
-        nearbyWomen.push({
-          name: woman.name,
-          latitude: lat,
-          longitude: lon,
-          date: formattedDate,
-          time: formattedTime,
-          distance: distance.toFixed(2) + " km",
-       
-        });
-      }
-    }
+    nearbyWomen.push({
+      name: woman.name,
+      latitude: lat,
+      longitude: lon,
+      date: formattedDate,
+      time: formattedTime,
+      distance: distance.toFixed(2) + " km",
+    });
+  }
+}
+
 
     res.status(200).json({
       status: 200,
@@ -242,7 +242,7 @@ exports.getWomenNearByPoliceStation = async (req, res) => {
         longitude: policeLon
       },
       nearbyWomen,
-         filePath:"/uploads/file-1754562859685.mp3"
+      filePath: "/uploads/file-1754562859685.mp3"
     });
 
   } catch (err) {
