@@ -18,16 +18,28 @@ router.post("/confirm-notification", async (req, res) => {
     }
 
     const record = await NotificationStatus.findOne({ notificationId });
+
     if (!record) {
       return res.status(404).json({ error: "Notification not found" });
     }
 
+    // ✅ If already delivered, block others
+    if (record.status === "delivered") {
+      return res.status(403).json({
+        error: "Notification already confirmed by another officer",
+        deliveredBy: record.deliveredBy,
+        deliveredAt: record.deliveredAt
+      });
+    }
+
+    // ✅ Update the notification
     record.status = "delivered";
     record.deliveredAt = new Date();
-    record.deliveredBy = phoneNumber; // ✅ Save which officer confirmed
+    record.deliveredBy = phoneNumber;
     await record.save();
 
-    res.status(200).json({ message: "Notification confirmed" });
+    res.status(200).json({ message: "Notification confirmed successfully" });
+
   } catch (err) {
     console.error("Error confirming notification:", err);
     res.status(500).json({ error: "Failed to confirm notification" });
